@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CALCULADORA A.R. BATERIAS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #555;
+        }
+        input {
+            padding: 10px;
+            margin-top: 10px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 15px;
+            width: 100%;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .result h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .result ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .result ul li {
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+        .result li.nome-celula {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .divider {
+            border-top: 2px solid #ccc;
+            margin: 20px 0;
+        }
+        .total {
+            font-weight: bold;
+            font-size: 18px;
+            color: #000;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #ffeb3b;
+            color: #000;
+            font-size: 18px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>CALCULADORA A.R. BATERIAS</h1>
+
+    <label for="tensao">Tensão Total do Pack de Baterias (V):</label>
+    <input type="number" id="tensao" step="0.01" placeholder="Ex: 36">
+
+    <label for="capacidade">Capacidade Total do Pack de Baterias (Ah):</label>
+    <input type="number" id="capacidade" step="0.01" placeholder="Ex: 10">
+
+    <button onclick="calcular()">Calcular</button>
+
+    <div class="result" id="result"></div>
+
+    <div class="message" id="message">
+        Enviamos para todo o Brasil! Para comprar, entre em contato com nosso WhatsApp de vendas: (11) 96199-7250
+    </div>
+
+    <script>
+        function calcular() {
+            var tensaoTotal = parseFloat(document.getElementById('tensao').value);
+            var capacidadeTotal = parseFloat(document.getElementById('capacidade').value);
+
+            var celulasSerie;
+            if (tensaoTotal === 12) {
+                celulasSerie = 4;
+            } else if (tensaoTotal === 36) {
+                celulasSerie = 10;
+            } else if (tensaoTotal === 48) {
+                celulasSerie = 13;
+            } else if (tensaoTotal === 60) {
+                celulasSerie = 16;
+            } else if (tensaoTotal === 72) {
+                celulasSerie = 20;
+            } else {
+                celulasSerie = Math.ceil(tensaoTotal / 3.6);
+            }
+
+            var precosEve2550 = [
+                { min: 10, max: 49, preco: 29.90 },
+                { min: 50, max: 99, preco: 25.00 },
+                { min: 100, max: 199, preco: 20.00 },
+                { min: 200, max: 299, preco: 19.00 },
+                { min: 300, max: 399, preco: 18.50 },
+                { min: 400, max: 999, preco: 18.00 },
+                { min: 1000, max: Infinity, preco: 17.00 }
+            ];
+            var precosEve3300 = [
+                { min: 10, max: 49, preco: 45.00 },
+                { min: 50, max: 99, preco: 31.00 },
+                { min: 100, max: 199, preco: 27.00 },
+                { min: 200, max: 299, preco: 26.00 },
+                { min: 300, max: 399, preco: 25.00 },
+                { min: 400, max: 999, preco: 24.50 },
+                { min: 1000, max: Infinity, preco: 23.50 }
+            ];
+            var precoSamsung3500 = 75.00;
+            var precoEve21700 = 55.00;
+
+            var celulas = [
+                { nome: "EVE 18650 2550mAh (3C)", tensao: 3.6, capacidade: 2.55, descarga: 3, precos: precosEve2550 },
+                { nome: "EVE 18650 3300mAh (3C)", tensao: 3.6, capacidade: 3.3, descarga: 3, precos: precosEve3300 },
+                { nome: "Samsung 18650 3500mAh (3C)", tensao: 3.6, capacidade: 3.5, descarga: 3, precoFixo: precoSamsung3500 },
+                { nome: "EVE 21700 5000mAh (3C)", tensao: 3.6, capacidade: 5.0, descarga: 3, precoFixo: precoEve21700 }
+            ];
+
+            var resultadoFinal = "<h2>Resultados:</h2>";
+
+            celulas.forEach(function(celula) {
+                // Cálculo otimizado para encontrar a quantidade de paralelos mais próxima da capacidade desejada
+                var celulasParalelo = Math.round(capacidadeTotal / celula.capacidade);
+                var totalCelulas = celulasSerie * celulasParalelo;
+
+                var precoCelula;
+                if (celula.precos) {
+                    for (var i = 0; i < celula.precos.length; i++) {
+                        if (totalCelulas >= celula.precos[i].min && totalCelulas <= celula.precos[i].max) {
+                            precoCelula = celula.precos[i].preco;
+                            break;
+                        }
+                    }
+                } else {
+                    precoCelula = celula.precoFixo;
+                }
+
+                if (totalCelulas < 10) {
+                    resultadoFinal += `<h2>QUANTIDADE MÍNIMA DE 10 UNIDADES para ${celula.nome}</h2><div class="divider"></div>`;
+                } else {
+                    var custoTotal = totalCelulas * precoCelula;
+                    var taxaDescarga = celula.descarga * (celulasParalelo * celula.capacidade);
+                    var potenciaMaxima = celulasSerie * 4.2 * taxaDescarga;
+
+                    resultadoFinal += `
+                        <ul>
+                            <li class="nome-celula"><strong>Célula:</strong> ${celula.nome}</li>
+                            <li>Preço unitário: R$ ${precoCelula.toFixed(2)}</li>
+                            <li>Quantidade de células em série: ${celulasSerie}</li>
+                            <li>Quantidade de células em paralelo: ${celulasParalelo}</li>
+                            <li>Total de células: ${totalCelulas}</li>
+                            <li>Tensão final do pack: ${celulasSerie * celula.tensao} V</li>
+                            <li>Capacidade final do pack: ${celulasParalelo * celula.capacidade} Ah</li>
+                            <li>Taxa máxima de descarga: ${taxaDescarga.toFixed(2)} A</li>
+                            <li>Ideal para veículos até: ${potenciaMaxima.toFixed(2)} Watts</li>
+                            <li class="total">Custo total: R$ ${custoTotal.toFixed(2)}</li>
+                        </ul>
+                        <div class="divider"></div>
+                    `;
+                }
+            });
+
+            document.getElementById('result').innerHTML = resultadoFinal;
+            document.getElementById('message').style.display = "block";
+        }
+    </script>
+</body>
+</html>
